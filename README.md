@@ -36,3 +36,51 @@ Um applet é formado por um trigger e uma ação correspondente.
 No nosso caso, o trigger será **Google Assistente ouvir a frase _turn light on_**, como podemos ver na imagem que segue:
 
 ![Alt text](images/ifttt_trigger.png)
+
+Explicando a imagem acima:
+ - O serviço que dispara a ação (trigger) é o Google Assistente
+ - A ação do Google Assistente que dispara o trigger é ouvir a frase _"turn ESP light on"_
+
+
+disparado o trigger, precisamos que o IFTTT responda ao usuário para informa-lo de que entendeu a ação, como podemos ver na imagem que segue:
+
+![Alt text](images/ifttt_response.png)
+
+O assistente efetivamente responderá (usando síntese de voz) ao comando de voz com a frase aqui específicada.
+
+Finalimente, queremos que o IFTTT execute uma ação em reação ao trigger, o que é configurado como na imagem abaixo:
+
+![Alt text](images/ifttt_action.png)
+
+A ação vista na imagem anterior diz ao IFTTT para **enviar um request HTTP para um servidor web (no nosso caso, na URL https://django-mqtt-broker.herokuapp.com/pub/testestbrbr/1)**.
+O signficado desta URL é explicado nas próximas sessões.
+
+### Comunicação com o ESP
+
+**Mas como faremos para que o ESP receba um comando HTTP sem que haja como um servidor web com hostname próprio?**
+
+A resposta é simples: não enviamos a request HTTP diretamente ao ESP. Nós enviaremos a request HTTP a um servidor web (correspondente a URL apresentada na sessão anterior) que **transformara a request em uma mensagem MQTT** e a publicará num tópico em que o ESP estará subscrito. Dessa forma descartamos a necessidade de que a Google Assistente e o ESP saibam da existência um do outro.
+
+## Transformando uma request HTTP em uma mensagem MQTT através de um app Django
+
+Para que a request seja transformada numa mensagem MQTT precisamos de um servidor web capaz de realizar tal operação.
+
+Para isso utilizamos o framework web **Django**, que permite o desenvolvimento rápido de aplicações web em Python.
+Não nos aprofundaremos no funcionamento do framework.
+O código do servidor web está na pasta **django-mqtt-broker** e está pronto para ser hospedado gratuitamente na plataforma Heroku.
+
+Basicamente, quando uma requisição é enviada ao servidor na URL _/pub/str/int_, o usuário está dizendo que quer que o valot _int_ seja publicado no tópico _str_.
+
+O trecho do código que executa esta ação está em _django-mqtt-broker/python-bridge/views.py_ e pode ser visto abaixo
+
+`
+def pub(request, topic, payload):
+    client = mqtt.Client()
+
+    client.username_pw_set("samuel.chenatti@gmail.com", "mamute1802!")
+    client.connect("maqiatto.com", 1883, 60)
+
+    status = client.publish("samuel.chenatti@gmail.com/"+topic, payload=payload)
+
+    return HttpResponse("Publish in topic {} payload {}".format("samuel.chenatti@gmail.com/"+topic, payload))
+`
