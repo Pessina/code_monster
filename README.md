@@ -1,7 +1,12 @@
 # Controlando o ESP/IoT através de comandos de voz
 
 O objetivo deste projeto é controlar um módulo ESP (ou similares) através de comandos de voz.
+
 Como protótipo do nosso conceito, focaremos na task simples de acender e apagar um led acoplado ao módulo.
+
+Nas sessões que seguem descrevemos a nossa arquitetura para este protótipo.
+
+Na última sessão resumimos a arquitetura através de um diagrama de sistema.
 
 ## Natural Language Processing
 
@@ -55,13 +60,13 @@ Finalimente, queremos que o IFTTT execute uma ação em reação ao trigger, o q
 A ação vista na imagem anterior diz ao IFTTT para **enviar um request HTTP para um servidor web (no nosso caso, na URL https://django-mqtt-broker.herokuapp.com/pub/testestbrbr/1)**.
 O signficado desta URL é explicado nas próximas sessões.
 
-### Comunicação com o ESP
+## Comunicação com o ESP
 
 **Mas como faremos para que o ESP receba um comando HTTP sem que haja como um servidor web com hostname próprio?**
 
 A resposta é simples: não enviamos a request HTTP diretamente ao ESP. Nós enviaremos a request HTTP a um servidor web (correspondente a URL apresentada na sessão anterior) que **transformara a request em uma mensagem MQTT** e a publicará num tópico em que o ESP estará subscrito. Dessa forma descartamos a necessidade de que a Google Assistente e o ESP saibam da existência um do outro.
 
-## Transformando uma request HTTP em uma mensagem MQTT através de um app Django
+### Transformando uma request HTTP em uma mensagem MQTT através de um app Django
 
 Para que a request seja transformada numa mensagem MQTT precisamos de um servidor web capaz de realizar tal operação.
 
@@ -71,16 +76,28 @@ O código do servidor web está na pasta **django-mqtt-broker** e está pronto p
 
 Basicamente, quando uma requisição é enviada ao servidor na URL _/pub/str/int_, o usuário está dizendo que quer que o valot _int_ seja publicado no tópico _str_.
 
-O trecho do código que executa esta ação está em _django-mqtt-broker/python-bridge/views.py_ e pode ser visto abaixo
+O trecho do código que executa esta sequência de comandos está em _django-mqtt-broker/python-bridge/views.py_ e pode ser visto abaixo
 
 `
+
 def pub(request, topic, payload):
     client = mqtt.Client()
 
-    client.username_pw_set("samuel.chenatti@gmail.com", "mamute1802!")
+    client.username_pw_set("samuel.chenatti@gmail.com", "password")
     client.connect("maqiatto.com", 1883, 60)
 
     status = client.publish("samuel.chenatti@gmail.com/"+topic, payload=payload)
 
     return HttpResponse("Publish in topic {} payload {}".format("samuel.chenatti@gmail.com/"+topic, payload))
+
 `
+
+É importante notar que estamos usando o **Maqiatto**, um broker MQTT público e gratuito.
+
+## O ESP
+
+E, finalmente, o ESP executa o código presente em _mqtt_led/mqtt_led.ino_ que, resumidamente se inscreve no tópico _testestbrbr_ e aguarda por uma mensagem 1 ou 0 para acender ou apagar o LED.
+
+## Diagrama do sistema
+
+![Alt text](images/arq.jpeg)
