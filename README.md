@@ -78,7 +78,7 @@ Basicamente, quando uma requisição é enviada ao servidor na URL _/pub/str/int
 
 O trecho do código que executa esta sequência de comandos está em _django-mqtt-broker/python-bridge/views.py_ e pode ser visto abaixo
 
-`
+```python
 
 def pub(request, topic, payload):
     client = mqtt.Client()
@@ -90,7 +90,7 @@ def pub(request, topic, payload):
 
     return HttpResponse("Publish in topic {} payload {}".format("samuel.chenatti@gmail.com/"+topic, payload))
 
-`
+```
 
 É importante notar que estamos usando o **Maqiatto**, um broker MQTT público e gratuito.
 
