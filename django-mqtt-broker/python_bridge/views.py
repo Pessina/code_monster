@@ -35,7 +35,7 @@ def index(request):
 def pub(request, topic, payload):
     client = mqtt.Client()
 
-    client.username_pw_set("samuel.chenatti@gmail.com", "mamute1802!")
+    client.username_pw_set("samuel.chenatti@gmail.com", "***")
     client.connect("maqiatto.com", 1883, 60)
 
     status = client.publish("samuel.chenatti@gmail.com/"+topic, payload=payload)
